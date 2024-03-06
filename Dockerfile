@@ -21,9 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && cd ../.. \
  && rm -rf sentencepiece
 
-# Copy the model directory into the container at /app/model
-COPY Lamini /app/Lamini
-
 # Copy the current directory contents into the container at /app
 COPY . .
 
@@ -35,3 +32,4 @@ EXPOSE 8501
 
 # Run the Streamlit app
 CMD ["streamlit", "run", "app.py"]
+
