@@ -8,7 +8,7 @@ import torch
 import base64
 
 #model and tokenizer loading
-checkpoint = "Lamini"
+checkpoint = "model/Lamini"
 tokenizer = T5Tokenizer.from_pretrained(checkpoint)
 base_model = T5ForConditionalGeneration.from_pretrained(checkpoint, device_map='auto', torch_dtype=torch.float32)
 
