@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf sentencepiece
 
 # Copy the model directory into the container at /app/model
-COPY model /app/model
+COPY model /app/Lamini
 
 # Copy the current directory contents into the container at /app
 COPY . .
