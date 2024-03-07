@@ -19,7 +19,7 @@ tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
 # File preprocessing
 def file_preprocessing(file):
-    loader =  PyPDFLoader(file)
+    loader = PyPDFLoader(file)
     pages = loader.load_and_split()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=50)
     texts = text_splitter.split_documents(pages)
@@ -57,3 +57,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
