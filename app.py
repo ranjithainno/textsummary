@@ -2,16 +2,13 @@ import streamlit as st
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain.chains.summarize import load_summarize_chain
-from transformers import T5Tokenizer, T5ForConditionalGeneration
 from transformers import pipeline
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 import base64
+from langchain.document_loaders import PyPDFLoader
+from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
-#model and tokenizer loading
-#checkpoint = "Lamini"
-#tokenizer = T5Tokenizer.from_pretrained(checkpoint)
-#base_model = T5ForConditionalGeneration.from_pretrained(checkpoint, device_map='auto', torch_dtype=torch.float32)
 
 # Check if GPU is available and set device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -20,7 +17,7 @@ checkpoint = "facebook/bart-large-cnn"  # Using a different model with known GPU
 base_model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint).to(device)
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
-#file loader and preprocessing
+# File preprocessing
 def file_preprocessing(file):
     loader =  PyPDFLoader(file)
     pages = loader.load_and_split()
@@ -28,60 +25,35 @@ def file_preprocessing(file):
     texts = text_splitter.split_documents(pages)
     final_texts = ""
     for text in texts:
-        print(text)
         final_texts = final_texts + text.page_content
     return final_texts
 
-#LLM pipeline
-def llm_pipeline(filepath):
+# LLM pipeline
+def llm_pipeline(input_text):
     pipe_sum = pipeline(
         'summarization',
-        model = base_model,
-        tokenizer = tokenizer,
-        max_length = 2000, 
-        min_length = 50)
-    input_text = file_preprocessing(filepath)
+        model=base_model,
+        tokenizer=tokenizer,
+        max_length=2000, 
+        min_length=50)
     result = pipe_sum(input_text)
     result = result[0]['summary_text']
     return result
 
-@st.cache_data
-#function to display the PDF of a given file 
-def displayPDF(file):
-    # Opening file from file path
-    with open(file, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-
-    # Embedding PDF in HTML
-    pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
-
-    # Displaying File
-    st.markdown(pdf_display, unsafe_allow_html=True)
-
-#streamlit code 
-st.set_page_config(layout="wide")
-
 def main():
-    st.title("Pdf Summarization App using Langauge Model")
+    st.title("PDF Summarization App using Language Model")
 
     uploaded_file = st.file_uploader("Upload your PDF file", type=['pdf'])
 
     if uploaded_file is not None:
         if st.button("Summarize"):
-            col1, col2 = st.columns(2)
-            filepath = "data/"+uploaded_file.name
-            with open(filepath, "wb") as temp_file:
-                temp_file.write(uploaded_file.read())
-            with col1:
-                st.info("Uploaded File")
-                pdf_view = displayPDF(filepath)
-
-            with col2:
-                summary = llm_pipeline(filepath)
-                st.info("Summarization Complete")
-                st.success(summary)
-
-
+            input_text = file_preprocessing(uploaded_file)
+            if input_text.strip():  # Check if input text is not empty
+                summary = llm_pipeline(input_text)
+                st.success("Summarization Complete")
+                st.info(summary)
+            else:
+                st.error("No text found in the uploaded PDF.")
 
 if __name__ == "__main__":
     main()
