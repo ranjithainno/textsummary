@@ -1,14 +1,9 @@
 import streamlit as st 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader, DirectoryLoader
-from langchain.chains.summarize import load_summarize_chain
-from transformers import pipeline
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-import torch
-import base64
 from langchain.document_loaders import PyPDFLoader
 from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
-
+import torch
+import tempfile
 
 # Check if GPU is available and set device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -19,13 +14,17 @@ tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
 # File preprocessing
 def file_preprocessing(file):
-    loader = PyPDFLoader(file)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+        temp_file.write(file.read())
+        temp_file_path = temp_file.name
+
+    loader = PyPDFLoader(temp_file_path)  # Pass file path to PyPDFLoader
     pages = loader.load_and_split()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=50)
     texts = text_splitter.split_documents(pages)
     final_texts = ""
     for text in texts:
-        final_texts = final_texts + text.page_content
+        final_texts += text.page_content
     return final_texts
 
 # LLM pipeline
@@ -57,4 +56,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
