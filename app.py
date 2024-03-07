@@ -71,7 +71,7 @@ def main():
                 temp_file.write(uploaded_file.read())
             with col1:
                 st.info("Uploaded File")
-                pdf_view = displayPDF(filepath)
+                #pdf_view = displayPDF(filepath)
 
             with col2:
                 summary = llm_pipeline(filepath)
