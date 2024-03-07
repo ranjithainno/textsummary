@@ -13,8 +13,11 @@ import base64
 #tokenizer = T5Tokenizer.from_pretrained(checkpoint)
 #base_model = T5ForConditionalGeneration.from_pretrained(checkpoint, device_map='auto', torch_dtype=torch.float32)
 
+# Check if GPU is available and set device accordingly
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 checkpoint = "facebook/bart-large-cnn"  # Using a different model with known GPU support
-base_model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, device_map='auto', torch_dtype=torch.float32)
+base_model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint).to(device)
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
 #file loader and preprocessing
